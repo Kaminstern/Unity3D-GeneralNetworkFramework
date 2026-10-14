@@ -1,0 +1,12 @@
+syntax = "proto3";
+package General;
+
+option csharp_namespace = "General.Protos";
+
+message MsgPing{
+
+}
+
+message MsgPong{
+
+}
