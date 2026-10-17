@@ -1,0 +1,1 @@
+proto修改或添加字段后，运行`ProtobufTool\scripts\gen_all.bat`生成对应cs代码并拷贝到客户端服务端（应该能只是用一份，后面看看需不需要统一一个Common来存放）
