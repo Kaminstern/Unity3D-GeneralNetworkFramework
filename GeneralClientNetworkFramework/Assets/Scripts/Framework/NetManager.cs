@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using UnityEngine;
-using proto.BattleMsg;
-using proto.SysMsg;
+using Google.Protobuf;
+using General.Protos;
 
 namespace GeneralClientFramework
 {
@@ -34,7 +34,7 @@ namespace GeneralClientFramework
         static bool isClosing = false;
 
         // 消息列表
-        static List<ProtoBuf.IExtensible> msgList = new List<ProtoBuf.IExtensible>();
+        static List<IMessage> msgList = new List<IMessage>();
         // 消息列表长度
         static int msgCount = 0;
         // 每次Update时处理的消息量
@@ -96,7 +96,7 @@ namespace GeneralClientFramework
 
 
         // 消息委托类型
-        public delegate void MsgListener(ProtoBuf.IExtensible msgBase);
+        public delegate void MsgListener(IMessage msgBase);
 
         // 消息监听列表
         public static Dictionary<string, MsgListener> msgListeners = new Dictionary<string, MsgListener>();
@@ -130,7 +130,7 @@ namespace GeneralClientFramework
         }
 
         // 分发消息
-        public static void FireMsg(string name, ProtoBuf.IExtensible msg)
+        public static void FireMsg(string name, IMessage msg)
         {
             if(msgListeners.ContainsKey(name))
             {
@@ -174,7 +174,7 @@ namespace GeneralClientFramework
             isConnecting = false;
             // 是否正在关闭
             isClosing = false;
-            msgList = new List<ProtoBuf.IExtensible>();
+            msgList = new List<IMessage>();
             msgCount = 0;
 
             // 上一次发送Ping的时间
@@ -266,7 +266,7 @@ namespace GeneralClientFramework
             readBuff.readIdx += nameCount;
             // 解析协议体
             int bodyCount = bodyLength - nameCount;
-            ProtoBuf.IExtensible msg = MsgBase.Decode(protoName, readBuff.bytes, readBuff.readIdx, bodyCount);
+            IMessage msg = MsgBase.Decode(protoName, readBuff.bytes, readBuff.readIdx, bodyCount);
             readBuff.readIdx += bodyCount;
             readBuff.CheckAndMoveBytes();
             // 将接收到的内容放到消息队列中
@@ -308,7 +308,7 @@ namespace GeneralClientFramework
         }
 
         // 发送数据
-        public static void Send(ProtoBuf.IExtensible msg)
+        public static void Send(IMessage msg)
         {
             // 判断状态
             if (socket == null || !socket.Connected)
@@ -423,7 +423,7 @@ namespace GeneralClientFramework
             for(int i = 0; i < MAX_MESSAGE_FIRE; i++)
             {
                 // 获取第一条消息
-                ProtoBuf.IExtensible msgBase = null;
+                IMessage msgBase = null;
                 lock (msgList)
                 {
                     if(msgList.Count > 0)
@@ -448,7 +448,7 @@ namespace GeneralClientFramework
         }
 
         // 监听PONG协议，负责更新lastPongTime
-        private static void OnMsgPong(ProtoBuf.IExtensible msgBase)
+        private static void OnMsgPong(IMessage msgBase)
         {
             lastPongTime = Time.time; ;
         }

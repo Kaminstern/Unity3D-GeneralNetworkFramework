@@ -1,5 +1,5 @@
-using System.Security.Cryptography;
-using proto.BattleMsg;
+using Google.Protobuf;
+using General.Protos;
 using UnityEngine;
 
 namespace GeneralClientFramework
@@ -39,9 +39,9 @@ namespace GeneralClientFramework
         public void OnMoveClick()
         {
             MsgMove msgMove = new MsgMove();
-            msgMove.x = 120;
-            msgMove.y = 10;
-            msgMove.z = -5;
+            msgMove.X = 120;
+            msgMove.Y = 10;
+            msgMove.Z = -5;
             NetManager.Send(msgMove);
         }
 
@@ -64,13 +64,13 @@ namespace GeneralClientFramework
         }
 
         // 接收OnMsgMove协议
-        public void OnMsgMove(ProtoBuf.IExtensible msgBase)
+        public void OnMsgMove(IMessage msgBase)
         {
             MsgMove msg = msgBase as MsgMove;
             // 消息处理
-            Debug.Log($"OnMsgMove msg.x = {msg.x}");
-            Debug.Log($"OnMsgMove msg.y = {msg.y}");
-            Debug.Log($"OnMsgMove msg.z = {msg.z}");
+            Debug.Log($"OnMsgMove msg.x = {msg.X}");
+            Debug.Log($"OnMsgMove msg.y = {msg.Y}");
+            Debug.Log($"OnMsgMove msg.z = {msg.Z}");
         }
     }
 }

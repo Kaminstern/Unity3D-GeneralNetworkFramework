@@ -54,10 +54,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Proto\SysMsg.cs" />
+    <Compile Include="Assets\Scripts\Generated\BattleMsg.cs" />
     <Compile Include="Assets\Scripts\Proto\BattleMsg.cs" />
     <Compile Include="Assets\Scripts\Framework\MsgBase.cs" />
     <Compile Include="Assets\Scripts\Framework\NetManager.cs" />
     <Compile Include="Assets\Scripts\Framework\ByteArray.cs" />
+    <Compile Include="Assets\Scripts\Generated\SysMsg.cs" />
     <Compile Include="Assets\Scripts\Test.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -670,6 +672,14 @@
       <HintPath>Library\PackageCache\com.unity.collections@a43cabe808ca\Unity.Collections.LowLevel.ILSupport\Unity.Collections.LowLevel.ILSupport.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>Assets\Scripts\Proto\protobuf-net.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>Assets\Plugins\Google.Protobuf.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>Library\PackageCache\com.unity.ext.nunit@44f7d31723bd\net472\unity-custom\nunit.framework.dll</HintPath>
       <Private>False</Private>
@@ -680,10 +690,6 @@
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>Library\PackageCache\com.unity.nuget.mono-cecil@ecb9724e46ff\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="protobuf-net">
-      <HintPath>Assets\Scripts\Proto\protobuf-net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">
