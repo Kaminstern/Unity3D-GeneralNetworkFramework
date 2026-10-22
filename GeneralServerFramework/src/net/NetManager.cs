@@ -37,9 +37,19 @@ public static class NetManager
         socket.Listen(0);     // 参数backlog表示队列中最多可容纳等待接受的连接数，0表示不限制
 
         Console.WriteLine("[服务器] 启动成功");
+        InitProtocols();
 
         // Accept
         socket.BeginAccept(AcceptCallback, socket);
+    }
+
+    // 统一注册所有协议
+    private static void InitProtocols()
+    {
+        MsgBase.Register(MsgMove.Parser);
+        MsgBase.Register(MsgAttack.Parser);
+        MsgBase.Register(MsgPing.Parser);
+        MsgBase.Register(MsgPong.Parser);
     }
 
     // Accept回调
@@ -73,7 +83,7 @@ public static class NetManager
         {
             ClientState state = (ClientState)ar.AsyncState!;
             Socket clientfd = state.socket;
-            int count = socket.EndReceive(ar);
+            int count = clientfd.EndReceive(ar);
             Console.WriteLine("回调");
 
             // 客户端关闭
@@ -83,15 +93,17 @@ public static class NetManager
                 return;
             }
 
-            Int16 bodyLength = (Int16)(state.readBuff.bytes[state.readBuff.readIdx] | state.readBuff.bytes[state.readBuff.readIdx+1] << 8);
-            int nameCount = 0;
-            string protoName = MsgBase.DecodeName(state.readBuff.bytes, 2, out nameCount);
-            IMessage msg = MsgBase.Decode(protoName, state.readBuff.bytes, nameCount + 2, bodyLength - nameCount);
-            MsgMove msgMove = msg as MsgMove;
-            Console.WriteLine($"msgMove.x = {msgMove.X}");
+            // Int16 bodyLength = (Int16)(state.readBuff.bytes[state.readBuff.readIdx] | state.readBuff.bytes[state.readBuff.readIdx+1] << 8);
+            // int nameCount = 0;
+            // string protoName = MsgBase.DecodeName(state.readBuff.bytes, 2, out nameCount);
+            // IMessage msg = MsgBase.Decode(protoName, state.readBuff.bytes, nameCount + 2, bodyLength - nameCount);
+            // MsgMove msgMove = msg as MsgMove;
+            // Console.WriteLine($"msgMove.x = {msgMove.X}");
 
-            Console.WriteLine($"Received {BitConverter.ToString(state.readBuff.bytes, state.readBuff.readIdx, count)}");
+            // Console.WriteLine($"Received {BitConverter.ToString(state.readBuff.bytes, state.readBuff.readIdx, count)}");
 
+            // 更新当前连接的这个Client缓存写入指针
+            state.readBuff.writeIdx += count;
             // 广播
             byte[] sendBytes = new byte[count];
             Array.Copy(state.readBuff.bytes, state.readBuff.readIdx, sendBytes, 0, state.readBuff.length);

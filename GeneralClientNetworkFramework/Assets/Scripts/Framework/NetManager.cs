@@ -132,7 +132,7 @@ namespace GeneralClientFramework
         // 分发消息
         public static void FireMsg(string name, IMessage msg)
         {
-            if(msgListeners.ContainsKey(name))
+            if (msgListeners.ContainsKey(name))
             {
                 msgListeners[name](msg);
             }
@@ -141,6 +141,7 @@ namespace GeneralClientFramework
         // 连接
         public static void Connect(string ip, int port)
         {
+            InitProtocols();
             // 判断状态
             if (socket != null && socket.Connected)
             {
@@ -190,6 +191,15 @@ namespace GeneralClientFramework
             }
         }
 
+        // 统一注册所有协议
+        private static void InitProtocols()
+        {
+            MsgBase.Register(MsgMove.Parser);
+            MsgBase.Register(MsgAttack.Parser);
+            MsgBase.Register(MsgPing.Parser);
+            MsgBase.Register(MsgPong.Parser);
+        }
+
         private static void ConnectCallback(IAsyncResult ar)
         {
             try
@@ -216,7 +226,7 @@ namespace GeneralClientFramework
             {
                 Socket socket = ar.AsyncState as Socket;
                 int count = socket.EndReceive(ar);
-                if(count == 0)
+                if (count == 0)
                 {
                     Close();
                     return;
@@ -225,14 +235,14 @@ namespace GeneralClientFramework
                 // 处理二进制
                 OnReceiveData();
                 // 继续接收数据
-                if(readBuff.remain < 8)
+                if (readBuff.remain < 8)
                 {
                     readBuff.MoveBytes();
                     readBuff.ReSize(readBuff.length * 2);
                 }
                 socket.BeginReceive(readBuff.bytes, readBuff.writeIdx, readBuff.remain, 0, ReceiveCallback, socket);
             }
-            catch(SocketException ex)
+            catch (SocketException ex)
             {
                 Debug.Log($"Socket Receive fail: {ex.Message}");
             }
@@ -241,6 +251,7 @@ namespace GeneralClientFramework
         // 处理数据
         private static void OnReceiveData()
         {
+            // Debug.Log($"Received {BitConverter.ToString(readBuff.bytes, readBuff.readIdx, readBuff.length)}");
             // 消息长度
             if (readBuff.length <= 2)
             {
@@ -258,6 +269,7 @@ namespace GeneralClientFramework
             // 解析协议名
             int nameCount = 0;
             string protoName = MsgBase.DecodeName(readBuff.bytes, readBuff.readIdx, out nameCount);
+            // Debug.Log($"protoName: {protoName}");
             if (protoName == null)
             {
                 Debug.Log("OnReceiveData MsgBase.DecodeName fail");
@@ -276,7 +288,7 @@ namespace GeneralClientFramework
             }
             msgCount++;
             // 继续读消息
-            if(readBuff.length > 2)
+            if (readBuff.length > 2)
             {
                 OnReceiveData();
             }
@@ -322,7 +334,7 @@ namespace GeneralClientFramework
             // 数据编码
             byte[] nameBytes = MsgBase.EncodeName(msg);
             byte[] bodyBytes = MsgBase.Encode(msg);
-            
+
             int len = nameBytes.Length + bodyBytes.Length;
             byte[] sendBytes = new byte[2 + len];
             // 组装数据
@@ -366,7 +378,7 @@ namespace GeneralClientFramework
 
             // 完整发送
             ba.readIdx += count;
-            if( ba.length ==0)
+            if (ba.length == 0)
             {
                 lock (writeQueue)
                 {
@@ -375,12 +387,12 @@ namespace GeneralClientFramework
                 }
             }
             // 继续发送
-            if(ba != null)
+            if (ba != null)
             {
                 socket.BeginSend(ba.bytes, ba.readIdx, ba.length, 0, SendCallback, socket);
             }
             // 正在关闭
-            else if(isClosing)
+            else if (isClosing)
             {
                 socket.Close();
             }
@@ -396,14 +408,14 @@ namespace GeneralClientFramework
                 return;
             }
             // 发送PING
-            if(Time.time - lastPingTime > pingInterval)
+            if (Time.time - lastPingTime > pingInterval)
             {
                 MsgPing msgPing = new MsgPing();
                 Send(msgPing);
                 lastPingTime = Time.time;
             }
             // 检查PONG时间
-            if(Time.time - lastPongTime > pingInterval * 4)
+            if (Time.time - lastPongTime > pingInterval * 4)
             {
                 Close();
             }
@@ -415,18 +427,18 @@ namespace GeneralClientFramework
         public static void MsgUpdate()
         {
             // 做初步判断
-            if(msgCount == 0)
+            if (msgCount == 0)
             {
                 return;
             }
             // 重复处理消息
-            for(int i = 0; i < MAX_MESSAGE_FIRE; i++)
+            for (int i = 0; i < MAX_MESSAGE_FIRE; i++)
             {
                 // 获取第一条消息
                 IMessage msgBase = null;
                 lock (msgList)
                 {
-                    if(msgList.Count > 0)
+                    if (msgList.Count > 0)
                     {
                         msgBase = msgList[0];
                         Debug.Log($"msgBase {msgBase.ToString()}");
@@ -435,9 +447,10 @@ namespace GeneralClientFramework
                     }
                 }
                 // 分发消息
-                if(msgBase != null)
+                if (msgBase != null)
                 {
-                    FireMsg(msgBase.ToString(), msgBase);
+                    string name = msgBase.Descriptor.FullName;
+                    FireMsg(name, msgBase);
                 }
                 // 没有消息了
                 else

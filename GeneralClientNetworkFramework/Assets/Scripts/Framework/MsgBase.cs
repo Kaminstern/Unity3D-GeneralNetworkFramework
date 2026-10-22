@@ -15,7 +15,7 @@ namespace GeneralClientFramework
 
         // 注册单个协议（初始化时调用）
         public static void Register<T>(MessageParser<T> parser)
-             where T : IMessage<T>, new() 
+             where T : IMessage<T>, new()
         {
             // 通过new T() 拿到实例，再取 Descriptor.FullName
             string name = new T().Descriptor.FullName;
@@ -31,7 +31,8 @@ namespace GeneralClientFramework
         // 解码
         public static IMessage Decode(string protoName, byte[] bytes, int offset, int count)
         {
-            if(!parsers.TryGetValue(protoName, out var parser))
+            // Debug.Log($"Decode 请求: {protoName}, 已注册数量={parsers.Count}, keys=[{string.Join(",", parsers.Keys)}]");
+            if (!parsers.TryGetValue(protoName, out var parser))
             {
                 throw new Exception($"未注册协议： {protoName}");
             }
