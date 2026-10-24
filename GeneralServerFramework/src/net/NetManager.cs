@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Google.Protobuf;
 using General.Protos;
+using System.Runtime.CompilerServices;
 
 
 namespace GeneralServerFramework;
@@ -79,45 +80,74 @@ public static class NetManager
     // Receive回调
     private static void ReceiveCallback(IAsyncResult ar)
     {
+
+        ClientState state = (ClientState)ar.AsyncState!;
+        Socket clientfd = state.socket;
+        int count = 0;
+        Console.WriteLine("回调");
+
+        // 缓冲区不够，清除，若依旧不够，则返回
+        if (state.readBuff.remain <= 0)
+        {
+            OnReceiveData(state);
+            state.readBuff.MoveBytes();
+        }
+        if (state.readBuff.remain <= 0)
+        {
+            Console.WriteLine("Receive fail, maybe msg length > buff capacity");
+            Close(state);
+            return;
+        }
+
         try
         {
-            ClientState state = (ClientState)ar.AsyncState!;
-            Socket clientfd = state.socket;
-            int count = clientfd.EndReceive(ar);
-            Console.WriteLine("回调");
-
-            // 客户端关闭
-            if (count == 0)
-            {
-                Close(state);
-                return;
-            }
-
-            // Int16 bodyLength = (Int16)(state.readBuff.bytes[state.readBuff.readIdx] | state.readBuff.bytes[state.readBuff.readIdx+1] << 8);
-            // int nameCount = 0;
-            // string protoName = MsgBase.DecodeName(state.readBuff.bytes, 2, out nameCount);
-            // IMessage msg = MsgBase.Decode(protoName, state.readBuff.bytes, nameCount + 2, bodyLength - nameCount);
-            // MsgMove msgMove = msg as MsgMove;
-            // Console.WriteLine($"msgMove.x = {msgMove.X}");
-
-            // Console.WriteLine($"Received {BitConverter.ToString(state.readBuff.bytes, state.readBuff.readIdx, count)}");
-
-            // 更新当前连接的这个Client缓存写入指针
-            state.readBuff.writeIdx += count;
-            // 广播
-            byte[] sendBytes = new byte[count];
-            Array.Copy(state.readBuff.bytes, state.readBuff.readIdx, sendBytes, 0, state.readBuff.length);
-            foreach (ClientState cs in clients.Values)
-            {
-                cs.socket.Send(sendBytes);
-            }
-            clientfd.BeginReceive(state.readBuff.bytes, state.readBuff.writeIdx, state.readBuff.remain, 0, ReceiveCallback, state);
+            count = clientfd.EndReceive(ar);
         }
         catch (SocketException ex)
         {
-            Console.WriteLine($"Socket Receive fail {ex.Message}");
+            Console.WriteLine($"Receive fail {ex.Message}");
+            Close(state);
+            return;
         }
+
+        // 客户端关闭
+        if (count <= 0)
+        {
+            Console.WriteLine($"Socket client {clientfd.RemoteEndPoint!.ToString()}");
+            Close(state);
+            return;
+        }
+
+        // Int16 bodyLength = (Int16)(state.readBuff.bytes[state.readBuff.readIdx] | state.readBuff.bytes[state.readBuff.readIdx+1] << 8);
+        // int nameCount = 0;
+        // string protoName = MsgBase.DecodeName(state.readBuff.bytes, 2, out nameCount);
+        // IMessage msg = MsgBase.Decode(protoName, state.readBuff.bytes, nameCount + 2, bodyLength - nameCount);
+        // MsgMove msgMove = msg as MsgMove;
+        // Console.WriteLine($"msgMove.x = {msgMove.X}");
+
+        // Console.WriteLine($"Received {BitConverter.ToString(state.readBuff.bytes, state.readBuff.readIdx, count)}");
+
+        // 更新当前连接的这个Client缓存写入指针
+        // 消息处理
+        state.readBuff.writeIdx += count;
+
+        // 处理二进制消息
+        OnReceiveData(state);
+
+        // 移动缓冲区
+        state.readBuff.CheckAndMoveBytes();
+
+        // 广播
+        byte[] sendBytes = new byte[count];
+        Array.Copy(state.readBuff.bytes, state.readBuff.readIdx, sendBytes, 0, state.readBuff.length);
+        foreach (ClientState cs in clients.Values)
+        {
+            cs.socket.Send(sendBytes);
+        }
+        clientfd.BeginReceive(state.readBuff.bytes, state.readBuff.writeIdx, state.readBuff.remain, 0, ReceiveCallback, state);
     }
+
+
 
     // 发送
     public static void Send(string sendStr)
@@ -128,7 +158,7 @@ public static class NetManager
     }
 
     // 处理数据
-    private static void OnReceiveData()
+    private static void OnReceiveData(ClientState socket)
     {
 
     }
@@ -151,9 +181,10 @@ public static class NetManager
         }
         else
         {
-            socket.Close();
+            state.socket.Close();
             // 分发连接关闭的事件
             state.FireEvent(NetEvent.Cloas, "");
+            clients.Remove(state.socket);
         }
     }
 }
