@@ -144,7 +144,7 @@ namespace GeneralClientFramework
         // 打印缓冲区
         public override string ToString()
         {
-            return BitConverter.ToString(bytes, readIdx, writeIdx);
+            return BitConverter.ToString(bytes, readIdx, length);
         }
 
         // 打印调试信息
