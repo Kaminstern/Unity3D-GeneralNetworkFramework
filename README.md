@@ -2,6 +2,8 @@ proto修改或添加字段后，运行`ProtobufTool\scripts\gen_all.bat`生成�
 
 客户端socket喜欢命名为clientfd，这个fd指文件描述符，file descriptor的缩写
 
+设置了缓冲区长度1024，单条协议超过缓冲区长度时会发生错误，根据需要调整
+
 ### 正在改造事项
 
 服务端不用多路复用，改成异步接收

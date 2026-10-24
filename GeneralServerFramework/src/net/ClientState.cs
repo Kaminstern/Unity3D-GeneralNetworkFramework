@@ -27,21 +27,14 @@ namespace GeneralServerFramework
         // 是否正在关闭
         public bool isClosing = false;
 
-        // 消息列表
-        static List<IMessage> msgList = new List<IMessage>();
-        // 消息列表长度
-        static int msgCount = 0;
-        // 每次Update时处理的消息量
-        readonly int MAX_MESSAGE_FIRE = 10;
-
         // 是否启用心跳
         public bool isUsePing = true;
         // 心跳间隔
         public int pingInterval = 5;
         // 上一次发送PING的时间
-        float lastPingTime = 0;
+        public float lastPingTime = 0;
         // 上一次收到PONG的时间
-        float lastPongTime = 0;
+        public float lastPongTime = 0;
 
 
         // 事件委托类型

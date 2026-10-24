@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using Google.Protobuf;
 using General.Protos;
 using System.Runtime.CompilerServices;
+using System.Collections.Concurrent;
 
 
 namespace GeneralServerFramework;
@@ -14,6 +15,11 @@ public static class NetManager
 
     // 客户端Socket状态信息
     public static Dictionary<Socket, ClientState> clients = new Dictionary<Socket, ClientState>();
+
+    private static readonly ConcurrentQueue<(ClientState state, IMessage msg)> msgQueue = new();
+
+    // 每次Update时处理的消息量
+    public static int MAX_MESSAGE_FIRE = 10;
 
     // 获取描述
     public static string GetDesc()
@@ -147,7 +153,56 @@ public static class NetManager
         clientfd.BeginReceive(state.readBuff.bytes, state.readBuff.writeIdx, state.readBuff.remain, 0, ReceiveCallback, state);
     }
 
+    // 处理数据
+    private static void OnReceiveData(ClientState state)
+    {
+        ByteArray readBuff = state.readBuff;
+        byte[] bytes = readBuff.bytes;
+        // 消息长度
+        if (readBuff.length < 2)
+        {
+            return;
+        }
+        int readIdx = readBuff.readIdx;
+        Int16 bodyLength = (Int16)(bytes[readIdx] | bytes[readIdx + 1] << 8);
 
+        // 消息体
+        if (readBuff.length < bodyLength + 2)
+        {
+            return;
+        }
+        readBuff.readIdx += 2;
+
+        // 解析协议名
+        string protoName = MsgBase.DecodeName(readBuff.bytes, readBuff.readIdx, out int nameCount);
+        if (String.IsNullOrWhiteSpace(protoName))
+        {
+            Console.WriteLine("OnReceiveData MsgBase.DecodeName fail");
+            Close(state);
+        }
+        readBuff.readIdx += nameCount;
+
+        // 解析协议体
+        int bodyCount = bodyLength - nameCount;
+        IMessage msgBase = MsgBase.Decode(protoName, readBuff.bytes, readBuff.readIdx, bodyCount);
+        readBuff.readIdx += bodyCount;
+        readBuff.CheckAndMoveBytes();
+
+        // 添加到消息队列
+        msgQueue.Enqueue((state, msgBase));
+        Console.WriteLine($"Receive {protoName}");
+
+        // 分发消息
+        string name = msgBase.Descriptor.FullName;
+        state.FireMsg(name, msgBase);
+
+
+        // 继续读取消息
+        if (readBuff.length > 2)
+        {
+            OnReceiveData(state);
+        }
+    }
 
     // 发送
     public static void Send(string sendStr)
@@ -157,11 +212,6 @@ public static class NetManager
         socket.Send(sendBytes);
     }
 
-    // 处理数据
-    private static void OnReceiveData(ClientState socket)
-    {
-
-    }
 
     // 关闭连接
     public static void Close(ClientState state)
@@ -186,5 +236,25 @@ public static class NetManager
             state.FireEvent(NetEvent.Cloas, "");
             clients.Remove(state.socket);
         }
+    }
+
+    // 和客户端一样，需要一个消息更新的操作
+    public static void MsgUpdate()
+    {
+        for (int i = 0; i < MAX_MESSAGE_FIRE; i++)
+        {
+            if(!msgQueue.TryDequeue(out var item))
+            {
+                return;
+            }
+
+            HandleMessage(item.state, item.msg);
+        }
+    }
+
+    // 业务处理入口
+    private static void HandleMessage(ClientState state, IMessage msg)
+    {
+        state.FireMsg(msg.Descriptor.FullName, msg);
     }
 }
