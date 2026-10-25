@@ -273,7 +273,7 @@ public static class NetManager
             lock (state.writeQueue)
             {
                 state.writeQueue.Dequeue();     // 前面ba已经拿了队头数据，如果长度为0，表示为空，可以拿下一个数据，现在对头的空元素就可以出队了
-                ba = state.writeQueue.First();
+                ba = state.writeQueue.Count > 0 ? state.writeQueue.First() : null;
             }
         }
         // 继续发送

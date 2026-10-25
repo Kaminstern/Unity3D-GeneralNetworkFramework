@@ -383,7 +383,7 @@ namespace GeneralClientFramework
                 lock (writeQueue)
                 {
                     writeQueue.Dequeue();
-                    ba = writeQueue.First();
+                    ba = writeQueue.Count > 0 ? writeQueue.First() : null;
                 }
             }
             // 继续发送
