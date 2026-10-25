@@ -23,6 +23,9 @@ public static class NetManager
 
     public const long TIMER_INTERVAL_MS = 1000;     // 1秒一次
 
+    // Ping间隔不用ClientState的，统一一个间隔
+    public static long pingInterval = 5;
+
 
     // 获取描述
     public static string GetDesc()
@@ -144,8 +147,6 @@ public static class NetManager
         // Console.WriteLine($"msgMove.x = {msgMove.X}");
 
         // Console.WriteLine($"Received {BitConverter.ToString(state.readBuff.bytes, state.readBuff.readIdx, count)}");
-
-        state.lastPingTime = Environment.TickCount64;
 
         // 更新当前连接的这个Client缓存写入指针
         // 消息处理
@@ -365,5 +366,6 @@ public static class NetManager
         lastTimerTime = now;
 
         // 服务端定时任务
+        
     }
 }

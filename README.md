@@ -11,3 +11,5 @@ proto修改或添加字段后，运行`ProtobufTool\scripts\gen_all.bat`生成�
 服务端接收不用多路复用，每个连接直接异步接收
 
 服务端不用同步发送，每个连接直接异步发送
+
+服务端通过构建一个GetTimeStamp来获取时间戳，直接使用Environment.TickCount64;返回的是自系统启动以来所经过的毫秒数
