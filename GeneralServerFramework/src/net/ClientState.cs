@@ -79,50 +79,5 @@ namespace GeneralServerFramework
                 eventListeners[netEvent](err);
             }
         }
-
-
-
-        // 消息委托类型
-        public delegate void MsgListener(IMessage msgBase);
-
-        // 消息监听列表
-        public Dictionary<string, MsgListener> msgListeners = new Dictionary<string, MsgListener>();
-
-        // 添加消息监听
-        public void AddMsgListener(string name, MsgListener listener)
-        {
-            // 添加
-            if (msgListeners.ContainsKey(name))
-            {
-                msgListeners[name] += listener;
-            }
-            // 新增
-            else
-            {
-                msgListeners[name] = listener;
-            }
-        }
-
-        // 删除消息监听
-        public void RemoveMsgListener(string name, MsgListener listener)
-        {
-            if (msgListeners.ContainsKey(name))
-            {
-                msgListeners[name] -= listener;
-                if (msgListeners[name] == null)
-                {
-                    msgListeners.Remove(name);
-                }
-            }
-        }
-
-        // 分发消息
-        public void FireMsg(string name, IMessage msg)
-        {
-            if(msgListeners.ContainsKey(name))
-            {
-                msgListeners[name](msg);
-            }
-        }
     }
 }

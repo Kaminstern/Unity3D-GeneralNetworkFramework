@@ -58,6 +58,10 @@ public static class NetManager
         MsgBase.Register(MsgAttack.Parser);
         MsgBase.Register(MsgPing.Parser);
         MsgBase.Register(MsgPong.Parser);
+
+        MsgDispatcher.Register(MsgMove.Descriptor.FullName, MsgHandler.MsgMove);
+
+        MsgDispatcher.Register(MsgPing.Descriptor.FullName, MsgHandler.MsgPing);
     }
 
     // Accept回调
@@ -198,10 +202,7 @@ public static class NetManager
         msgQueue.Enqueue((state, msgBase));
         Console.WriteLine($"Receive {protoName}");
 
-        // 分发消息
-        string name = msgBase.Descriptor.FullName;
-        state.FireMsg(name, msgBase);
-
+        // 分发消息 → HandleMessage去做业务的处理和分发
 
         // 继续读取消息
         if (readBuff.length > 2)
@@ -319,6 +320,11 @@ public static class NetManager
         }
     }
 
+    public static void Update()
+    {
+        MsgUpdate();
+    }
+
     // 和客户端一样，需要一个消息更新的操作
     public static void MsgUpdate()
     {
@@ -336,6 +342,8 @@ public static class NetManager
     // 业务处理入口
     private static void HandleMessage(ClientState state, IMessage msg)
     {
-        state.FireMsg(msg.Descriptor.FullName, msg);
+        MsgDispatcher.Dispatch(state, msg);
     }
+
+
 }
