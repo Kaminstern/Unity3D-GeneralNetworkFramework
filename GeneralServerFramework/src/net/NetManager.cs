@@ -21,10 +21,10 @@ public static class NetManager
 
     public static long lastTimerTime = 0;
 
-    public const long TIMER_INTERVAL_MS = 1000;     // 1秒一次
+    public const long TIMER_INTERVAL_MS = 500;     // 0.5秒一次
 
     // Ping间隔不用ClientState的，统一一个间隔
-    public static long pingInterval = 5;
+    public static long pingInterval = 10;
 
 
     // 获取描述
@@ -366,6 +366,6 @@ public static class NetManager
         lastTimerTime = now;
 
         // 服务端定时任务
-        
+        EventHandler.OnTimer();
     }
 }
