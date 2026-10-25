@@ -15,7 +15,7 @@ public static class NetManager
     static Socket socket;
 
     // 客户端Socket状态信息
-    public static Dictionary<Socket, ClientState> clients = new Dictionary<Socket, ClientState>();
+    public static ConcurrentDictionary<Socket, ClientState> clients = new ConcurrentDictionary<Socket, ClientState>();
 
     private static readonly ConcurrentQueue<(ClientState state, IMessage msg)> msgQueue = new();
 
@@ -70,7 +70,12 @@ public static class NetManager
             Console.WriteLine("[服务器] Accept");
             ClientState state = new ClientState();
             state.socket = clientfd;
-            clients.Add(clientfd, state);
+            if (!clients.TryAdd(clientfd, state))
+            {
+                Console.WriteLine($"重复添加 socket: {clientfd.RemoteEndPoint}");
+                clientfd.Close();
+                return;
+            }
 
             // 接收数据
             clientfd.BeginReceive(state.readBuff.bytes, state.readBuff.writeIdx, state.readBuff.remain, 0, ReceiveCallback, state);
@@ -310,7 +315,7 @@ public static class NetManager
             state.socket.Close();
             // 分发连接关闭的事件
             state.FireEvent(NetEvent.Cloas, "");
-            clients.Remove(state.socket);
+            clients.TryRemove(state.socket, out _);
         }
     }
 
