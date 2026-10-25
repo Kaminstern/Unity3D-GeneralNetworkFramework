@@ -35,6 +35,9 @@ namespace GeneralServerFramework
         // 上一次收到PONG的时间
         public float lastPongTime = 0;
 
+        // 玩家
+        public Player player;
+
 
         // 事件委托类型
         public delegate void EventListener(string err);
