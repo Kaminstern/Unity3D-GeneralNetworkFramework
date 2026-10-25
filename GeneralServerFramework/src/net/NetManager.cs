@@ -31,13 +31,13 @@ public static class NetManager
     }
 
     // 连接
-    public static void Listen(string ip, int port)
+    public static void StartLoop(int port)
     {
         // Socket
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         // Bind
-        IPAddress ipAdr = IPAddress.Parse(ip);
+        IPAddress ipAdr = IPAddress.Parse("0.0.0.0");
         IPEndPoint ipEp = new IPEndPoint(ipAdr, port);
         socket.Bind(ipEp);
 
@@ -189,6 +189,7 @@ public static class NetManager
         {
             Console.WriteLine("OnReceiveData MsgBase.DecodeName fail");
             Close(state);
+            return;
         }
         readBuff.readIdx += nameCount;
 
@@ -260,7 +261,7 @@ public static class NetManager
         // 获取state、EndSend的处理
         ClientState state = (ClientState)ar.AsyncState;
         // 状态判断
-        if (state == null || state.socket == null || state.socket.Connected)
+        if (state == null || state.socket == null || !state.socket.Connected)
         {
             return;
         }
@@ -274,7 +275,7 @@ public static class NetManager
 
         // 完整发送
         ba.readIdx += count;
-        if(ba.length == 0)
+        if (ba.length == 0)
         {
             lock (state.writeQueue)
             {
@@ -283,11 +284,11 @@ public static class NetManager
             }
         }
         // 继续发送
-        if(ba != null)
+        if (ba != null)
         {
-            socket.BeginSend(ba.bytes, ba.readIdx, ba.length, 0, SendCallback, state);
+            state.socket.BeginSend(ba.bytes, ba.readIdx, ba.length, 0, SendCallback, state);
         }
-        else if(state.isClosing)    // 正在关闭
+        else if (state.isClosing)    // 正在关闭
         {
             state.socket.Close();
         }

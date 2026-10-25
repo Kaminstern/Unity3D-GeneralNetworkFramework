@@ -11,21 +11,15 @@ namespace GeneralServerFramework
     /// </summary>
     class MainClass
     {
-        // 监听Socket
-        static Socket socket;
-
-
         public static void Main(string[] args)
         {
-            MsgBase.Register(MsgMove.Parser);
-            MsgBase.Register(MsgAttack.Parser);
-
-            NetManager.Listen("127.0.0.1", 8888);
-
-            // 等待
-            Console.ReadLine();
-        }
-
-        
+            NetManager.StartLoop(8888);
+            // 不是select多路复用的循环，而是业务消费循环
+            while (true)
+            {
+                NetManager.Update();
+                Thread.Sleep(1);
+            }
+        }     
     }
 }
