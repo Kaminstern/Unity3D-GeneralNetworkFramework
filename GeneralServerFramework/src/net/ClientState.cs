@@ -1,5 +1,4 @@
 using System.Net.Sockets;
-using Google.Protobuf;
 
 namespace GeneralServerFramework
 {
@@ -32,7 +31,7 @@ namespace GeneralServerFramework
         // 心跳间隔
         public int pingInterval = 5;
         // 上一次发送PING的时间
-        public float lastPingTime = 0;
+        public float lastPingTime = Environment.TickCount64;
         // 上一次收到PONG的时间
         public float lastPongTime = 0;
 

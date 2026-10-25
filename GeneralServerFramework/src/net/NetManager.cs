@@ -2,10 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Google.Protobuf;
 using General.Protos;
-using System.Runtime.CompilerServices;
 using System.Collections.Concurrent;
-using Google.Protobuf.WellKnownTypes;
-
 
 namespace GeneralServerFramework;
 
@@ -21,6 +18,11 @@ public static class NetManager
 
     // 每次Update时处理的消息量
     public static int MAX_MESSAGE_FIRE = 10;
+
+    public static long lastTimerTime = 0;
+
+    public const long TIMER_INTERVAL_MS = 1000;     // 1秒一次
+
 
     // 获取描述
     public static string GetDesc()
@@ -142,6 +144,8 @@ public static class NetManager
         // Console.WriteLine($"msgMove.x = {msgMove.X}");
 
         // Console.WriteLine($"Received {BitConverter.ToString(state.readBuff.bytes, state.readBuff.readIdx, count)}");
+
+        state.lastPingTime = Environment.TickCount64;
 
         // 更新当前连接的这个Client缓存写入指针
         // 消息处理
@@ -317,6 +321,7 @@ public static class NetManager
             state.socket.Close();
             // 分发连接关闭的事件
             state.FireEvent(NetEvent.Cloas, "");
+            EventHandler.OnDisconnect(state);
             clients.TryRemove(state.socket, out _);
         }
     }
@@ -324,6 +329,7 @@ public static class NetManager
     public static void Update()
     {
         MsgUpdate();
+        Timer();
     }
 
     // 和客户端一样，需要一个消息更新的操作
@@ -346,5 +352,18 @@ public static class NetManager
         MsgDispatcher.Dispatch(state, msg);
     }
 
+    private static void Timer()
+    {
+        long now = Environment.TickCount64;
 
+        // 主循环sleep(1)，这里控制1秒节拍
+        if (now - lastTimerTime < TIMER_INTERVAL_MS)
+        {
+            return;
+        }
+
+        lastTimerTime = now;
+
+        // 服务端定时任务
+    }
 }
