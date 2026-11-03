@@ -1,7 +1,4 @@
-﻿using General.Protos;
-using Google.Protobuf;
-using System.Net;
-using System.Net.Sockets;
+﻿using System;
 
 namespace GeneralServerFramework
 {
@@ -13,6 +10,10 @@ namespace GeneralServerFramework
     {
         public static void Main(string[] args)
         {
+            if(!DbManager.Connect("game", "192.168.254.132", 3306, "root", "123456"))
+            {
+                return;
+            }
             NetManager.StartLoop(8888);
             // 不是select多路复用的循环，而是业务消费循环
             while (true)
