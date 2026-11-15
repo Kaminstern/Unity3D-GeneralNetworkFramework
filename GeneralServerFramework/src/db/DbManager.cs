@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using MySqlConnector;
 
@@ -57,14 +59,14 @@ namespace GeneralServerFramework
             }
 
             // 写入数据库User表
-            string sql = string.Format("insert into account set id = '{0}', pw = '{1}';", id, pw);
+            string sql = string.Format("insert into account set id = '{0}', pw = '{1}';", id, Md5WithSalt(pw, id));
             try
             {
                 MySqlCommand cmd = new MySqlCommand(sql, mysql);
                 cmd.ExecuteNonQuery();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine($"[数据库] Register fail {ex.Message}");
                 return false;
@@ -100,6 +102,14 @@ namespace GeneralServerFramework
         private static bool IsSafeString(string str)
         {
             return !Regex.IsMatch(str, @"[-|;|,|\/|\(|\)|\[|\]|\}|\{|%|@|\*|!|\']");
+        }
+
+        // md5
+        private static string Md5WithSalt(string input, string salt)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(salt + input);
+            byte[] hash = MD5.HashData(bytes);
+            return Convert.ToHexString(hash);
         }
     }
 }
