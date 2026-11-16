@@ -13,3 +13,7 @@ proto修改或添加字段后，运行`ProtobufTool\scripts\gen_all.bat`生成�
 服务端不用同步发送，每个连接直接异步发送
 
 服务端通过构建一个GetTimeStamp来获取时间戳，直接使用Environment.TickCount64;返回的是自系统启动以来所经过的毫秒数
+
+没有用MySql.Data，直接用MySqlConnector，性能更高，内存占用更低，从底层为 **`async/await`** 设计 ，提供真正、可取消的异步 I/O，可靠性高，兼容性更广
+
+服务端DbManager中的Java序列化，改成了官方的`JsonSerializer`
