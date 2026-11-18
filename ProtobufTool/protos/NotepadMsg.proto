@@ -1,0 +1,14 @@
+syntax = "proto3";
+package General;
+
+option csharp_namespace = "General.Protos";
+
+message MsgGetText{
+	optional string text = 1;
+}
+
+message MsgSaveText{
+	optional string text = 1;
+	optional int32 result = 2;
+}
+

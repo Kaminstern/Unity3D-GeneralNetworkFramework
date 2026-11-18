@@ -1,0 +1,20 @@
+syntax = "proto3";
+package General;
+
+option csharp_namespace = "General.Protos";
+
+message MsgRegister{
+	optional string id = 1;
+	optional string pw = 2;
+	optional int32 result = 3;
+}
+
+message MsgLogin{
+	optional string id = 1;
+	optional string pw = 2;
+	optional int32 result = 3;
+}
+
+message MsgKick{
+	optional int32 reason = 1;
+}
