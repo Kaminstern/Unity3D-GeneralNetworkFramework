@@ -63,10 +63,17 @@ public static class NetManager
         MsgBase.Register(MsgAttack.Parser);
         MsgBase.Register(MsgPing.Parser);
         MsgBase.Register(MsgPong.Parser);
+        MsgBase.Register(MsgRegister.Parser);
+        MsgBase.Register(MsgLogin.Parser);
+        MsgBase.Register(MsgKick.Parser);
+        MsgBase.Register(MsgGetText.Parser);
+        MsgBase.Register(MsgSaveText.Parser);
 
         MsgDispatcher.Register(MsgMove.Descriptor.FullName, MsgHandler.MsgMove);
 
         MsgDispatcher.Register(MsgPing.Descriptor.FullName, MsgHandler.MsgPing);
+
+        MsgDispatcher.Register(MsgRegister.Descriptor.FullName, MsgHandler.MsgRegister);
     }
 
     // Accept回调

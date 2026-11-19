@@ -4,6 +4,16 @@ proto修改或添加字段后，运行`ProtobufTool\scripts\gen_all.bat`生成�
 
 设置了缓冲区长度1024，单条协议超过缓冲区长度时会发生错误，根据需要调整
 
+传输协议的格式从高到低位是
+
+1、两字节，表示bodyLength，这个bodyLength只表示后面内容的长度，不计算这两个字节
+
+2、两字节，表示msgLength，表示协议名长度，不计算这两个字节
+
+3、msgLength，协议名
+
+4、剩下的，表示具体的消息，长度位bodyLength - nameCount，其中nameCount = 2 + msgLength
+
 ### 已经改造
 
 没有用protobuf-net，直接用的Google protobuf
